@@ -43,7 +43,7 @@ const addGame = (context: AppContext, { data }: AddGameEvent) => {
   })
 }
 
-interface AppStateSchema {
+export interface AppStateSchema {
   states: {
     loading: {}
     idle: {}
@@ -60,14 +60,14 @@ interface AddGameEvent {
   }
 }
 
-type AppEvent =
+export type AppEvent =
   | { type: 'LOADED'; data: object }
   | { type: 'FAILED' }
   | { type: 'ADD_GAME' }
   | AddGameEvent
   | { type: 'CANCEL' }
 
-interface AppContext {
+export interface AppContext {
   history: Array<{
     id: number
     date: number

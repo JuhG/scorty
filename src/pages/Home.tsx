@@ -18,43 +18,7 @@ import React, { useEffect, useState } from 'react'
 import { RouteComponentProps } from 'react-router-dom'
 import { Interpreter } from 'xstate'
 import AddGame from '../components/AddGame'
-
-interface AppStateSchema {
-  states: {
-    loading: {}
-    idle: {}
-    adding_game: {}
-    open_game: {}
-  }
-}
-
-interface AddGameEvent {
-  type: 'GAME_ADDED'
-  data: {
-    game: number
-    name: string
-  }
-}
-
-type AppEvent =
-  | { type: 'LOADED'; data: object }
-  | { type: 'FAILED' }
-  | { type: 'ADD_GAME' }
-  | AddGameEvent
-  | { type: 'CANCEL' }
-
-interface AppContext {
-  history: Array<{
-    id: number
-    date: number
-    game: number
-  }>
-  games: Array<{
-    id: number
-    name: string
-  }>
-  players: Array<object>
-}
+import { AppContext, AppEvent, AppStateSchema } from '../data/appMachine'
 
 interface HomeProps extends RouteComponentProps<{}> {
   appService: Interpreter<AppContext, AppStateSchema, AppEvent>
