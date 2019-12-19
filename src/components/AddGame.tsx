@@ -35,7 +35,7 @@ const Modal: React.FC<ModalProps> = ({
       isOpen={isOpen}
       onDidDismiss={() => onDismiss()}
     >
-      <IonToolbar>
+      <IonToolbar color="secondary">
         <IonTitle slot="start">Create a new game</IonTitle>
       </IonToolbar>
 
@@ -46,7 +46,7 @@ const Modal: React.FC<ModalProps> = ({
             value={game}
             onIonChange={e => setGame(e.detail.value)}
             name="dd_game"
-            placeholder="Select One"
+            placeholder="Pick One"
           >
             <IonSelectOption value={-1}>Add new game</IonSelectOption>
             {games.map(game => (

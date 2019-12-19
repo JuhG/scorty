@@ -133,11 +133,12 @@ const Home: React.FC<HomeProps> = ({ appService, history }) => {
 
         <IonFab vertical="bottom" horizontal="end" slot="fixed">
           <IonFabButton
+            color="secondary"
             onClick={() => {
               send('ADD_GAME')
             }}
           >
-            <IonIcon name="close" />
+            <IonIcon class="dd-plus" name="close" />
           </IonFabButton>
         </IonFab>
       </IonContent>
