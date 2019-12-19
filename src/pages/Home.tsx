@@ -1,41 +1,148 @@
 import {
+  IonButton,
+  IonButtons,
   IonContent,
+  IonFab,
+  IonFabButton,
   IonHeader,
+  IonIcon,
+  IonItem,
+  IonLabel,
+  IonList,
   IonPage,
   IonTitle,
   IonToolbar,
-  IonButton,
-  IonButtons
-} from "@ionic/react";
-import React from "react";
+} from '@ionic/react'
+import { useService } from '@xstate/react'
+import React, { useEffect, useState } from 'react'
+import { RouteComponentProps } from 'react-router-dom'
+import { Interpreter } from 'xstate'
+import AddGame from '../components/AddGame'
 
-const Home: React.FC = () => {
+interface AppStateSchema {
+  states: {
+    loading: {}
+    idle: {}
+    adding_game: {}
+    open_game: {}
+  }
+}
+
+interface AddGameEvent {
+  type: 'GAME_ADDED'
+  data: {
+    game: number
+    name: string
+  }
+}
+
+type AppEvent =
+  | { type: 'LOADED'; data: object }
+  | { type: 'FAILED' }
+  | { type: 'ADD_GAME' }
+  | AddGameEvent
+  | { type: 'CANCEL' }
+
+interface AppContext {
+  history: Array<{
+    id: number
+    date: number
+    game: number
+  }>
+  games: Array<{
+    id: number
+    name: string
+  }>
+  players: Array<object>
+}
+
+interface HomeProps extends RouteComponentProps<{}> {
+  appService: Interpreter<AppContext, AppStateSchema, AppEvent>
+}
+
+const Home: React.FC<HomeProps> = ({ appService, history }) => {
+  const [current, send] = useService(appService)
+  const [isAddGameOpen, setIsAddGameOpen] = useState(false)
+
+  console.log(current)
+
+  useEffect(() => {
+    console.log(current)
+
+    switch (current.value) {
+      case 'adding_game':
+        setIsAddGameOpen(true)
+        break
+
+      case 'idle':
+        setIsAddGameOpen(false)
+        break
+
+      case 'open_game':
+        setIsAddGameOpen(false)
+        break
+
+      default:
+        setIsAddGameOpen(false)
+        break
+    }
+  }, [current, history])
+
   return (
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonTitle>Ionic Blank</IonTitle>
+          <IonTitle>Board Game Counter</IonTitle>
           <IonButtons slot="primary">
-            <IonButton routerLink="/action">Action</IonButton>
+            <IonButton>
+              <IonIcon name="menu" />
+            </IonButton>
           </IonButtons>
         </IonToolbar>
       </IonHeader>
-      <IonContent className="ion-padding">
-        The world is your oyster.
-        <p>
-          If you get lost, the{" "}
-          <a
-            target="_blank"
-            rel="noopener noreferrer"
-            href="https://ionicframework.com/docs/"
+      <IonContent>
+        {isAddGameOpen ? (
+          <AddGame
+            games={current.context.games}
+            isOpen={isAddGameOpen}
+            onDismiss={() => send('CANCEL')}
+            onSuccess={(game: number, name: string) => {
+              send({
+                type: 'GAME_ADDED',
+                data: { game, name },
+              })
+            }}
+          />
+        ) : null}
+
+        <IonList>
+          {current.context.history.map(item => {
+            const game = current.context.games.find(
+              game => game.id === item.game
+            )
+            return (
+              <IonItem routerLink={`/game/${item.id}`} key={item.id}>
+                <IonLabel>
+                  <h2>{game ? game.name : ''}</h2>
+                  <p>{new Date(item.date).toLocaleDateString()}</p>
+                </IonLabel>
+              </IonItem>
+            )
+          })}
+        </IonList>
+
+        <IonFab vertical="bottom" horizontal="end" slot="fixed">
+          <IonFabButton
+            onClick={() => {
+              send('ADD_GAME')
+            }}
           >
-            docs
-          </a>{" "}
-          will be your guide.
-        </p>
+            <IonIcon name="close" />
+          </IonFabButton>
+        </IonFab>
       </IonContent>
     </IonPage>
-  );
-};
+  )
+}
 
-export default Home;
+export default Home

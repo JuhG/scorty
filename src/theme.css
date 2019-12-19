@@ -1,4 +1,3 @@
-
 /* Ionic Variables and Theming. For more information, please see
 // https://beta.ionicframework.com/docs/theming/
 // The app direction is used to include
@@ -173,4 +172,18 @@
   --ion-toolbar-background: var(--ion-color-primary);
   --ion-toolbar-color: #fff;
   --ion-toolbar-color-activated: #fff;
+}
+
+.dd-modal {
+  --width: 80%;
+  --height: 400px;
+}
+.dd-add-game {
+  --width: 80%;
+  --height: 300px;
+}
+
+.dd-button {
+  --padding-start: 20px !important;
+  --padding-end: 20px !important;
 }
