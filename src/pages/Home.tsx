@@ -1,6 +1,4 @@
 import {
-  IonButton,
-  IonButtons,
   IonContent,
   IonFab,
   IonFabButton,
@@ -10,6 +8,7 @@ import {
   IonLabel,
   IonList,
   IonPage,
+  IonText,
   IonTitle,
   IonToolbar,
 } from '@ionic/react'
@@ -28,8 +27,6 @@ const Home: React.FC<HomeProps> = ({ appService, history }) => {
   const [current, send] = useService(appService)
   const [isAddGameOpen, setIsAddGameOpen] = useState(false)
 
-  console.log(current)
-
   useEffect(() => {
     console.log(current)
 
@@ -38,61 +35,61 @@ const Home: React.FC<HomeProps> = ({ appService, history }) => {
         setIsAddGameOpen(true)
         break
 
-      case 'idle':
-        setIsAddGameOpen(false)
-        break
-
       case 'open_game':
-        setIsAddGameOpen(false)
+        history.push(
+          `/game/${
+            current.context.history[current.context.history.length - 1].id
+          }`
+        )
+        send('RESTART')
         break
 
       default:
         setIsAddGameOpen(false)
         break
     }
-  }, [current, history])
+  }, [current, history, send])
 
   return (
     <IonPage>
       <IonHeader>
         <IonToolbar>
           <IonTitle>Board Game Counter</IonTitle>
-          <IonButtons slot="primary">
-            <IonButton>
-              <IonIcon name="menu" />
-            </IonButton>
-          </IonButtons>
         </IonToolbar>
       </IonHeader>
       <IonContent>
-        {isAddGameOpen ? (
-          <AddGame
-            games={current.context.games}
-            isOpen={isAddGameOpen}
-            onDismiss={() => send('CANCEL')}
-            onSuccess={(game: number, name: string) => {
-              send({
-                type: 'GAME_ADDED',
-                data: { game, name },
-              })
-            }}
-          />
-        ) : null}
+        <AddGame
+          games={current.context.games}
+          isOpen={isAddGameOpen}
+          onDismiss={() => send('CANCEL')}
+          onSuccess={(game: number, name: string) => {
+            send({
+              type: 'GAME_ADDED',
+              data: { game, name },
+            })
+          }}
+        />
 
         <IonList>
-          {current.context.history.map(item => {
-            const game = current.context.games.find(
-              game => game.id === item.game
-            )
-            return (
-              <IonItem routerLink={`/game/${item.id}`} key={item.id}>
-                <IonLabel>
-                  <h2>{game ? game.name : ''}</h2>
-                  <p>{new Date(item.date).toLocaleDateString()}</p>
-                </IonLabel>
-              </IonItem>
-            )
-          })}
+          {current.context.history.length === 0 ? (
+            <IonText class="ion-padding">
+              Not much to see. Click the plus sign!
+            </IonText>
+          ) : (
+            current.context.history.map(item => {
+              const game = current.context.games.find(
+                game => game.id === item.game
+              )
+              return (
+                <IonItem routerLink={`/game/${item.id}`} key={item.id}>
+                  <IonLabel>
+                    <h2>{game ? game.name : ''}</h2>
+                    <p>{new Date(item.date).toLocaleDateString()}</p>
+                  </IonLabel>
+                </IonItem>
+              )
+            })
+          )}
         </IonList>
 
         <IonFab vertical="bottom" horizontal="end" slot="fixed">

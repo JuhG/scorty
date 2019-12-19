@@ -66,6 +66,7 @@ export type AppEvent =
   | { type: 'ADD_GAME' }
   | AddGameEvent
   | { type: 'CANCEL' }
+  | { type: 'RESTART' }
 
 export interface AppContext {
   history: Array<{
@@ -112,6 +113,10 @@ export const appMachine = Machine<AppContext, AppStateSchema, AppEvent>({
         CANCEL: 'idle',
       },
     },
-    open_game: {},
+    open_game: {
+      on: {
+        RESTART: 'idle',
+      },
+    },
   },
 })

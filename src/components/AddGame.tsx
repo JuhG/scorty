@@ -60,6 +60,7 @@ const Modal: React.FC<ModalProps> = ({
           <IonItem>
             <IonLabel>New game</IonLabel>
             <IonInput
+              class="ion-text-end"
               value={name}
               onIonChange={e => {
                 if ('undefined' === typeof e.detail.value) return
@@ -88,7 +89,7 @@ const Modal: React.FC<ModalProps> = ({
             class="dd-button"
             fill="solid"
             size="large"
-            disabled={!game || (game === -1 && !name)}
+            disabled={null === game || (game === -1 && !name)}
             onClick={() => {
               if (null === game) return
 
