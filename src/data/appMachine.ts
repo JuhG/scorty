@@ -3,6 +3,71 @@ import { assign, Machine } from 'xstate'
 
 const { Storage } = Plugins
 
+export interface AppStateSchema {
+  states: {
+    loading: {}
+    idle: {}
+    adding_game: {}
+    open_game: {}
+  }
+}
+
+interface AddGameEvent {
+  type: 'GAME_ADDED'
+  data: {
+    game: number
+    name: string
+  }
+}
+
+interface AddPlayerEvent {
+  type: 'ADD_PLAYER'
+  data: {
+    item: number
+    player: number
+    name: string
+  }
+}
+
+interface DeleteGameEvent {
+  type: 'DELETE_GAME'
+  game: number
+}
+
+export type AppEvent =
+  | { type: 'LOADED'; data: object }
+  | { type: 'FAILED' }
+  | { type: 'ADD_GAME' }
+  | { type: 'RESET' }
+  | DeleteGameEvent
+  | AddGameEvent
+  | { type: 'CANCEL' }
+  | { type: 'RESTART' }
+  | AddPlayerEvent
+
+interface Player {
+  id: number
+  name: string
+}
+
+export interface AppContext {
+  history: Array<{
+    id: number
+    date: number
+    game: number
+    scores: Array<{
+      player: number
+      color: string
+      blocks: Array<Array<number>>
+    }>
+  }>
+  games: Array<{
+    id: number
+    name: string
+  }>
+  players: Array<Player>
+}
+
 const addGame = (context: AppContext, { data }: AddGameEvent) => {
   let game = null
 
@@ -29,6 +94,7 @@ const addGame = (context: AppContext, { data }: AddGameEvent) => {
         : 0,
       date: Date.now(),
       game: game.id,
+      scores: [],
     },
   ]
 
@@ -43,43 +109,45 @@ const addGame = (context: AppContext, { data }: AddGameEvent) => {
   })
 }
 
-export interface AppStateSchema {
-  states: {
-    loading: {}
-    idle: {}
-    adding_game: {}
-    open_game: {}
+const addPlayer = (ctx: AppContext, { data }: AddPlayerEvent) => {
+  let player: Player | undefined = undefined
+
+  if (data.player === -1) {
+    player = {
+      id: ctx.players.length ? ctx.players[ctx.players.length - 1].id + 1 : 0,
+      name: data.name,
+    }
+
+    ctx.players = [...ctx.players, player]
+  } else {
+    player = ctx.players.find(player => player.id === data.player)
   }
-}
 
-interface AddGameEvent {
-  type: 'GAME_ADDED'
-  data: {
-    game: number
-    name: string
-  }
-}
+  ctx.history = ctx.history.map(i => {
+    if (i.id !== data.item) return i
 
-export type AppEvent =
-  | { type: 'LOADED'; data: object }
-  | { type: 'FAILED' }
-  | { type: 'ADD_GAME' }
-  | { type: 'RESET' }
-  | AddGameEvent
-  | { type: 'CANCEL' }
-  | { type: 'RESTART' }
+    if (!player) return i
 
-export interface AppContext {
-  history: Array<{
-    id: number
-    date: number
-    game: number
-  }>
-  games: Array<{
-    id: number
-    name: string
-  }>
-  players: Array<object>
+    console.log(i)
+
+    i.scores.push({
+      player: player.id,
+      color: '',
+      blocks: [[]],
+    })
+
+    return i
+  })
+
+  Storage.set({
+    key: 'DD_STATE',
+    value: JSON.stringify(ctx),
+  })
+
+  assign({
+    history: ctx.history,
+    players: ctx.players,
+  })
 }
 
 export const appMachine = Machine<AppContext, AppStateSchema, AppEvent>({
@@ -119,6 +187,27 @@ export const appMachine = Machine<AppContext, AppStateSchema, AppEvent>({
 
             return newState
           }),
+        },
+        DELETE_GAME: {
+          target: 'idle',
+          actions: assign((ctx: AppContext, { game }: DeleteGameEvent) => {
+            const newState = {
+              history: ctx.history.filter(g => g.id !== game),
+              games: ctx.games,
+              players: ctx.players,
+            }
+
+            Storage.set({
+              key: 'DD_STATE',
+              value: JSON.stringify(newState),
+            })
+
+            return newState
+          }),
+        },
+        ADD_PLAYER: {
+          target: 'idle',
+          actions: addPlayer,
         },
       },
     },

@@ -6,11 +6,14 @@ import {
   IonHeader,
   IonIcon,
   IonItem,
+  IonItemOption,
+  IonItemOptions,
+  IonItemSliding,
   IonLabel,
   IonList,
+  IonListHeader,
   IonMenuButton,
   IonPage,
-  IonText,
   IonTitle,
   IonToolbar,
 } from '@ionic/react'
@@ -57,6 +60,18 @@ const Home: React.FC<HomeProps> = ({ appService, history }) => {
     <>
       <Menu appService={appService} />
 
+      <AddGame
+        games={current.context.games}
+        isOpen={isAddGameOpen}
+        onDismiss={() => send('CANCEL')}
+        onSuccess={(game: number, name: string) => {
+          send({
+            type: 'GAME_ADDED',
+            data: { game, name },
+          })
+        }}
+      />
+
       <IonPage>
         <IonHeader>
           <IonToolbar>
@@ -67,40 +82,49 @@ const Home: React.FC<HomeProps> = ({ appService, history }) => {
             </IonButtons>
           </IonToolbar>
         </IonHeader>
-        <IonContent id="main">
-          <AddGame
-            games={current.context.games}
-            isOpen={isAddGameOpen}
-            onDismiss={() => send('CANCEL')}
-            onSuccess={(game: number, name: string) => {
-              send({
-                type: 'GAME_ADDED',
-                data: { game, name },
-              })
-            }}
-          />
 
-          <IonList>
-            {current.context.history.length === 0 ? (
-              <IonText class="ion-padding">
-                Not much to see. Click the plus sign!
-              </IonText>
-            ) : (
-              current.context.history.map(item => {
+        <IonContent id="main">
+          {current.context.history.length === 0 ? (
+            <div className="ion-padding">
+              <h4>You don't have any games yet.</h4>
+              <p>Click the plus sign to start one!</p>
+            </div>
+          ) : (
+            <IonList>
+              <IonListHeader>
+                <h1>Games</h1>
+              </IonListHeader>
+
+              {current.context.history.map(item => {
                 const game = current.context.games.find(
                   game => game.id === item.game
                 )
                 return (
-                  <IonItem routerLink={`/game/${item.id}`} key={item.id}>
-                    <IonLabel>
-                      <h2>{game ? game.name : ''}</h2>
-                      <p>{new Date(item.date).toLocaleDateString()}</p>
-                    </IonLabel>
-                  </IonItem>
+                  <IonItemSliding key={item.id}>
+                    <IonItem routerLink={`/game/${item.id}`}>
+                      <IonLabel>
+                        <h2>{game ? game.name : ''}</h2>
+                        <p>{new Date(item.date).toLocaleDateString()}</p>
+                      </IonLabel>
+                    </IonItem>
+                    <IonItemOptions side="end">
+                      <IonItemOption
+                        color="secondary"
+                        onClick={() => {
+                          send({
+                            type: 'DELETE_GAME',
+                            game: item.id,
+                          })
+                        }}
+                      >
+                        DELETE
+                      </IonItemOption>
+                    </IonItemOptions>
+                  </IonItemSliding>
                 )
-              })
-            )}
-          </IonList>
+              })}
+            </IonList>
+          )}
 
           <IonFab vertical="bottom" horizontal="end" slot="fixed">
             <IonFabButton

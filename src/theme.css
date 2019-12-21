@@ -195,3 +195,7 @@
 .alert-button.secondary {
   --ion-color-primary: var(--ion-color-secondary);
 }
+
+.dd-overflow {
+  overflow-y: auto;
+}

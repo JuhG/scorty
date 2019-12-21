@@ -17,7 +17,7 @@ import { AppContext, AppEvent, AppStateSchema } from '../data/appMachine'
 const Menu: React.FC<{
   appService: Interpreter<AppContext, AppStateSchema, AppEvent>
 }> = ({ appService, ...props }) => {
-  const [_, send] = useService(appService)
+  const [, send] = useService(appService)
   const [isAlertOpen, setIsAlertOpen] = useState(false)
 
   return (
@@ -44,7 +44,7 @@ const Menu: React.FC<{
 
       <IonMenu {...props} side="end" contentId="main">
         <IonHeader>
-          <IonToolbar>
+          <IonToolbar color="secondary">
             <IonTitle>Settings</IonTitle>
           </IonToolbar>
         </IonHeader>
