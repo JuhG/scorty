@@ -64,6 +64,7 @@ export type AppEvent =
   | { type: 'LOADED'; data: object }
   | { type: 'FAILED' }
   | { type: 'ADD_GAME' }
+  | { type: 'RESET' }
   | AddGameEvent
   | { type: 'CANCEL' }
   | { type: 'RESTART' }
@@ -102,6 +103,23 @@ export const appMachine = Machine<AppContext, AppStateSchema, AppEvent>({
     idle: {
       on: {
         ADD_GAME: 'adding_game',
+        RESET: {
+          target: 'idle',
+          actions: assign(ctx => {
+            const newState = {
+              history: [],
+              games: ctx.games,
+              players: ctx.players,
+            }
+
+            Storage.set({
+              key: 'DD_STATE',
+              value: JSON.stringify(newState),
+            })
+
+            return newState
+          }),
+        },
       },
     },
     adding_game: {

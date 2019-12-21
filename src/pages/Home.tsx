@@ -1,4 +1,5 @@
 import {
+  IonButtons,
   IonContent,
   IonFab,
   IonFabButton,
@@ -7,6 +8,7 @@ import {
   IonItem,
   IonLabel,
   IonList,
+  IonMenuButton,
   IonPage,
   IonText,
   IonTitle,
@@ -17,6 +19,7 @@ import React, { useEffect, useState } from 'react'
 import { RouteComponentProps } from 'react-router-dom'
 import { Interpreter } from 'xstate'
 import AddGame from '../components/AddGame'
+import Menu from '../components/Menu'
 import { AppContext, AppEvent, AppStateSchema } from '../data/appMachine'
 
 interface HomeProps extends RouteComponentProps<{}> {
@@ -51,59 +54,67 @@ const Home: React.FC<HomeProps> = ({ appService, history }) => {
   }, [current, history, send])
 
   return (
-    <IonPage>
-      <IonHeader>
-        <IonToolbar>
-          <IonTitle>Board Game Counter</IonTitle>
-        </IonToolbar>
-      </IonHeader>
-      <IonContent>
-        <AddGame
-          games={current.context.games}
-          isOpen={isAddGameOpen}
-          onDismiss={() => send('CANCEL')}
-          onSuccess={(game: number, name: string) => {
-            send({
-              type: 'GAME_ADDED',
-              data: { game, name },
-            })
-          }}
-        />
+    <>
+      <Menu appService={appService} />
 
-        <IonList>
-          {current.context.history.length === 0 ? (
-            <IonText class="ion-padding">
-              Not much to see. Click the plus sign!
-            </IonText>
-          ) : (
-            current.context.history.map(item => {
-              const game = current.context.games.find(
-                game => game.id === item.game
-              )
-              return (
-                <IonItem routerLink={`/game/${item.id}`} key={item.id}>
-                  <IonLabel>
-                    <h2>{game ? game.name : ''}</h2>
-                    <p>{new Date(item.date).toLocaleDateString()}</p>
-                  </IonLabel>
-                </IonItem>
-              )
-            })
-          )}
-        </IonList>
+      <IonPage>
+        <IonHeader>
+          <IonToolbar>
+            <IonTitle>Board Game Counter</IonTitle>
 
-        <IonFab vertical="bottom" horizontal="end" slot="fixed">
-          <IonFabButton
-            color="secondary"
-            onClick={() => {
-              send('ADD_GAME')
+            <IonButtons slot="end">
+              <IonMenuButton />
+            </IonButtons>
+          </IonToolbar>
+        </IonHeader>
+        <IonContent id="main">
+          <AddGame
+            games={current.context.games}
+            isOpen={isAddGameOpen}
+            onDismiss={() => send('CANCEL')}
+            onSuccess={(game: number, name: string) => {
+              send({
+                type: 'GAME_ADDED',
+                data: { game, name },
+              })
             }}
-          >
-            <IonIcon class="dd-plus" name="close" />
-          </IonFabButton>
-        </IonFab>
-      </IonContent>
-    </IonPage>
+          />
+
+          <IonList>
+            {current.context.history.length === 0 ? (
+              <IonText class="ion-padding">
+                Not much to see. Click the plus sign!
+              </IonText>
+            ) : (
+              current.context.history.map(item => {
+                const game = current.context.games.find(
+                  game => game.id === item.game
+                )
+                return (
+                  <IonItem routerLink={`/game/${item.id}`} key={item.id}>
+                    <IonLabel>
+                      <h2>{game ? game.name : ''}</h2>
+                      <p>{new Date(item.date).toLocaleDateString()}</p>
+                    </IonLabel>
+                  </IonItem>
+                )
+              })
+            )}
+          </IonList>
+
+          <IonFab vertical="bottom" horizontal="end" slot="fixed">
+            <IonFabButton
+              color="secondary"
+              onClick={() => {
+                send('ADD_GAME')
+              }}
+            >
+              <IonIcon class="dd-plus" name="close" />
+            </IonFabButton>
+          </IonFab>
+        </IonContent>
+      </IonPage>
+    </>
   )
 }
 

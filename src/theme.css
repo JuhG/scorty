@@ -191,3 +191,7 @@
 .dd-plus {
   transform: rotate(45deg);
 }
+
+.alert-button.secondary {
+  --ion-color-primary: var(--ion-color-secondary);
+}
