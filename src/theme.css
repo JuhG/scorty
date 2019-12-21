@@ -176,7 +176,7 @@
 
 .dd-modal {
   --width: 80%;
-  --height: 400px;
+  --height: 440px;
 }
 .dd-add-game {
   --width: 80%;
@@ -196,6 +196,20 @@
   --ion-color-primary: var(--ion-color-secondary);
 }
 
-.dd-overflow {
-  overflow-y: auto;
+.dd-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dd-sum {
+  margin-top: 10px;
+  border-top: 1px solid var(--ion-color-light-shade);
+  padding-top: 10px;
+}
+
+.dd-add {
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--ion-color-light-shade);
+  padding-bottom: 10px;
 }

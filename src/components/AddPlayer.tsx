@@ -44,7 +44,11 @@ const Modal: React.FC<ModalProps> = ({
         <IonTitle slot="start">Add a player</IonTitle>
       </IonToolbar>
 
-      <div className="dd-overflow">
+      <div
+        style={{
+          overflowY: 'auto',
+        }}
+      >
         <IonList>
           <IonRadioGroup
             value={player}

@@ -9,21 +9,23 @@ import {
   IonToolbar,
 } from '@ionic/react'
 import React, { useState } from 'react'
+import { Player } from '../data/appMachine'
 
 interface ButtonProps {
   val: number
-  onAdd: Function
+  onSuccess: Function
   onDismiss: Function
 }
 
-const Button: React.FC<ButtonProps> = ({ val, onAdd, onDismiss }) => {
+const Button: React.FC<ButtonProps> = ({ val, onSuccess, onDismiss }) => {
   return (
     <IonCol>
       <IonButton
         color="secondary"
         fill="solid"
         expand="block"
-        onClick={() => onAdd(val)}
+        size="large"
+        onClick={() => onSuccess(val)}
       >
         {val}
       </IonButton>
@@ -33,15 +35,20 @@ const Button: React.FC<ButtonProps> = ({ val, onAdd, onDismiss }) => {
 
 interface RowProps {
   values: Array<number>
-  onAdd: Function
+  onSuccess: Function
   onDismiss: Function
 }
 
-const Row: React.FC<RowProps> = ({ values, onAdd, onDismiss }) => {
+const Row: React.FC<RowProps> = ({ values, onSuccess, onDismiss }) => {
   return (
     <IonRow class="ion-nowrap">
       {values.map(val => (
-        <Button key={val} onAdd={onAdd} onDismiss={onDismiss} val={val} />
+        <Button
+          key={val}
+          onSuccess={onSuccess}
+          onDismiss={onDismiss}
+          val={val}
+        />
       ))}
     </IonRow>
   )
@@ -50,30 +57,40 @@ const Row: React.FC<RowProps> = ({ values, onAdd, onDismiss }) => {
 const allValues = [[1, 2, 3], [4, 5, 6], [7, 8, 9], [0]]
 
 interface ModalProps {
-  open: boolean
-  onAdd: (number: number) => void
+  isOpen: boolean
+  onSuccess: (number: number) => void
   onDismiss: Function
+  player: Player | null | undefined
 }
 
-const Modal: React.FC<ModalProps> = ({ open, onAdd, onDismiss }) => {
+const Modal: React.FC<ModalProps> = ({
+  isOpen,
+  onSuccess,
+  onDismiss,
+  player,
+}) => {
   const [count, setCount] = useState('')
 
   return (
     <IonModal
       cssClass="dd-modal"
-      isOpen={open}
+      isOpen={isOpen}
       onDidDismiss={() => onDismiss()}
     >
       <IonToolbar color="light">
-        <IonTitle slot="start">Name</IonTitle>
-        <IonTitle slot="end">{count}</IonTitle>
+        <IonTitle style={{ padding: 20, textAlign: 'left' }} slot="start">
+          {player ? player.name : ''}
+        </IonTitle>
+        <IonTitle style={{ padding: 20 }} slot="end">
+          {count}
+        </IonTitle>
       </IonToolbar>
 
       <IonGrid>
         {allValues.map(values => (
           <Row
             key={values[0]}
-            onAdd={(number: number) => setCount('' + count + number)}
+            onSuccess={(number: number) => setCount('' + count + number)}
             onDismiss={onDismiss}
             values={values}
           />
@@ -98,8 +115,7 @@ const Modal: React.FC<ModalProps> = ({ open, onAdd, onDismiss }) => {
             fill="solid"
             size="large"
             onClick={() => {
-              onAdd(parseInt(count, 10) || 0)
-              onDismiss()
+              onSuccess(parseInt(count, 10) || 0)
               setCount('')
             }}
           >

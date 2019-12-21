@@ -29,6 +29,15 @@ interface AddPlayerEvent {
   }
 }
 
+interface AddScoreEvent {
+  type: 'ADD_SCORE'
+  data: {
+    item: number
+    player: Player | null | undefined
+    score: number
+  }
+}
+
 interface DeleteGameEvent {
   type: 'DELETE_GAME'
   game: number
@@ -44,8 +53,9 @@ export type AppEvent =
   | { type: 'CANCEL' }
   | { type: 'RESTART' }
   | AddPlayerEvent
+  | AddScoreEvent
 
-interface Player {
+export interface Player {
   id: number
   name: string
 }
@@ -128,8 +138,6 @@ const addPlayer = (ctx: AppContext, { data }: AddPlayerEvent) => {
 
     if (!player) return i
 
-    console.log(i)
-
     i.scores.push({
       player: player.id,
       color: '',
@@ -147,6 +155,33 @@ const addPlayer = (ctx: AppContext, { data }: AddPlayerEvent) => {
   assign({
     history: ctx.history,
     players: ctx.players,
+  })
+}
+
+const addScore = (ctx: AppContext, { data }: AddScoreEvent) => {
+  if (!data.player) return
+
+  ctx.history = ctx.history.map(i => {
+    if (i.id !== data.item) return i
+
+    i.scores.map(s => {
+      if (!data.player) return s
+      if (s.player !== data.player.id) return s
+
+      s.blocks[s.blocks.length - 1].push(data.score)
+      return s
+    })
+
+    return i
+  })
+
+  Storage.set({
+    key: 'DD_STATE',
+    value: JSON.stringify(ctx),
+  })
+
+  assign({
+    history: ctx.history,
   })
 }
 
@@ -208,6 +243,10 @@ export const appMachine = Machine<AppContext, AppStateSchema, AppEvent>({
         ADD_PLAYER: {
           target: 'idle',
           actions: addPlayer,
+        },
+        ADD_SCORE: {
+          target: 'idle',
+          actions: addScore,
         },
       },
     },
