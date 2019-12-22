@@ -9,7 +9,7 @@ import {
   IonToolbar,
 } from '@ionic/react'
 import React, { useState } from 'react'
-import { Player } from '../data/appMachine'
+import { PlayerSchema } from '../data/Player'
 
 interface ButtonProps {
   val: number
@@ -60,7 +60,7 @@ interface ModalProps {
   isOpen: boolean
   onSuccess: (number: number) => void
   onDismiss: Function
-  player: Player | null | undefined
+  player: PlayerSchema
 }
 
 const Modal: React.FC<ModalProps> = ({
@@ -79,7 +79,7 @@ const Modal: React.FC<ModalProps> = ({
     >
       <IonToolbar color="light">
         <IonTitle style={{ padding: 20, textAlign: 'left' }} slot="start">
-          {player ? player.name : ''}
+          {player.name}
         </IonTitle>
         <IonTitle style={{ padding: 20 }} slot="end">
           {count}

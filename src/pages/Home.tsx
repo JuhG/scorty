@@ -11,7 +11,6 @@ import {
   IonItemSliding,
   IonLabel,
   IonList,
-  IonListHeader,
   IonMenuButton,
   IonPage,
   IonTitle,
@@ -24,6 +23,7 @@ import { Interpreter } from 'xstate'
 import AddGame from '../components/AddGame'
 import Menu from '../components/Menu'
 import { AppContext, AppEvent, AppStateSchema } from '../data/appMachine'
+import { Play } from '../data/Play'
 
 interface HomeProps extends RouteComponentProps<{}> {
   appService: Interpreter<AppContext, AppStateSchema, AppEvent>
@@ -42,11 +42,7 @@ const Home: React.FC<HomeProps> = ({ appService, history }) => {
         break
 
       case 'open_game':
-        history.push(
-          `/game/${
-            current.context.history[current.context.history.length - 1].id
-          }`
-        )
+        history.push(`/game/${Play.find(current.context, -1).id}`)
         send('RESTART')
         break
 
@@ -67,7 +63,7 @@ const Home: React.FC<HomeProps> = ({ appService, history }) => {
         onSuccess={(game: number, name: string) => {
           send({
             type: 'GAME_ADDED',
-            data: { game, name },
+            data: { id: game, name },
           })
         }}
       />
@@ -75,7 +71,7 @@ const Home: React.FC<HomeProps> = ({ appService, history }) => {
       <IonPage>
         <IonHeader>
           <IonToolbar>
-            <IonTitle>Board Game Counter</IonTitle>
+            <IonTitle>Scorty</IonTitle>
 
             <IonButtons slot="end">
               <IonMenuButton />
@@ -91,13 +87,9 @@ const Home: React.FC<HomeProps> = ({ appService, history }) => {
             </div>
           ) : (
             <IonList>
-              <IonListHeader>
-                <h1>Games</h1>
-              </IonListHeader>
-
               {current.context.history.map(item => {
                 const game = current.context.games.find(
-                  game => game.id === item.game
+                  game => game.id === item.gameId
                 )
                 return (
                   <IonItemSliding key={item.id}>
@@ -113,7 +105,7 @@ const Home: React.FC<HomeProps> = ({ appService, history }) => {
                         onClick={() => {
                           send({
                             type: 'DELETE_GAME',
-                            game: item.id,
+                            gameId: item.id,
                           })
                         }}
                       >

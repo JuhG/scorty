@@ -1,5 +1,8 @@
 import { Plugins } from '@capacitor/core'
 import { assign, Machine } from 'xstate'
+import { Game, GameSchema } from './Game'
+import { Play, PlaySchema } from './Play'
+import { Player, PlayerSchema } from './Player'
 
 const { Storage } = Plugins
 
@@ -12,19 +15,22 @@ export interface AppStateSchema {
   }
 }
 
+export interface AppContext {
+  history: Array<PlaySchema>
+  games: Array<GameSchema>
+  players: Array<PlayerSchema>
+}
+
 interface AddGameEvent {
   type: 'GAME_ADDED'
-  data: {
-    game: number
-    name: string
-  }
+  data: GameSchema
 }
 
 interface AddPlayerEvent {
   type: 'ADD_PLAYER'
   data: {
-    item: number
-    player: number
+    playId: number
+    id: number
     name: string
   }
 }
@@ -32,19 +38,19 @@ interface AddPlayerEvent {
 interface AddScoreEvent {
   type: 'ADD_SCORE'
   data: {
-    item: number
-    player: Player | null | undefined
+    playId: number
+    playerId: number
     score: number
   }
 }
 
 interface DeleteGameEvent {
   type: 'DELETE_GAME'
-  game: number
+  gameId: number
 }
 
 export type AppEvent =
-  | { type: 'LOADED'; data: object }
+  | { type: 'LOADED'; data: AppContext }
   | { type: 'FAILED' }
   | { type: 'ADD_GAME' }
   | { type: 'RESET' }
@@ -55,134 +61,43 @@ export type AppEvent =
   | AddPlayerEvent
   | AddScoreEvent
 
-export interface Player {
-  id: number
-  name: string
-}
+const addGame = (ctx: AppContext, { data }: AddGameEvent) => {
+  ctx = Game.make(ctx, data)
+  const game = Game.find(ctx, data.id)
 
-export interface AppContext {
-  history: Array<{
-    id: number
-    date: number
-    game: number
-    scores: Array<{
-      player: number
-      color: string
-      blocks: Array<Array<number>>
-    }>
-  }>
-  games: Array<{
-    id: number
-    name: string
-  }>
-  players: Array<Player>
-}
-
-const addGame = (context: AppContext, { data }: AddGameEvent) => {
-  let game = null
-
-  if (data.game === -1) {
-    game = {
-      id: context.games.length
-        ? context.games[context.games.length - 1].id + 1
-        : 0,
-      name: data.name,
-    }
-
-    context.games = [...context.games, game]
-  } else {
-    game = context.games.find(game => game.id === data.game)
-  }
-
-  if (!game) return
-
-  context.history = [
-    ...context.history,
-    {
-      id: context.history.length
-        ? context.history[context.history.length - 1].id + 1
-        : 0,
-      date: Date.now(),
-      game: game.id,
-      scores: [],
-    },
-  ]
-
-  Storage.set({
-    key: 'DD_STATE',
-    value: JSON.stringify(context),
+  ctx = Play.make(ctx, {
+    id: -1,
+    date: Date.now(),
+    gameId: game.id,
+    players: [],
   })
 
-  assign({
-    games: context.games,
-    history: context.history,
-  })
+  return ctx
 }
 
 const addPlayer = (ctx: AppContext, { data }: AddPlayerEvent) => {
-  let player: Player | undefined = undefined
+  const { playId, ...playerData } = data
 
-  if (data.player === -1) {
-    player = {
-      id: ctx.players.length ? ctx.players[ctx.players.length - 1].id + 1 : 0,
-      name: data.name,
-    }
+  ctx = Player.make(ctx, playerData)
+  const player = Player.find(ctx, playerData.id)
 
-    ctx.players = [...ctx.players, player]
-  } else {
-    player = ctx.players.find(player => player.id === data.player)
-  }
-
-  ctx.history = ctx.history.map(i => {
-    if (i.id !== data.item) return i
-
-    if (!player) return i
-
-    i.scores.push({
-      player: player.id,
-      color: '',
-      blocks: [[]],
-    })
-
-    return i
+  ctx = Play.makePlayer(ctx, {
+    playId,
+    data: { id: -1, playerId: player.id, color: '', blocks: [] },
   })
 
-  Storage.set({
-    key: 'DD_STATE',
-    value: JSON.stringify(ctx),
+  ctx = Play.addBlock(ctx, {
+    playId,
+    playerId: player.id,
   })
 
-  assign({
-    history: ctx.history,
-    players: ctx.players,
-  })
+  return ctx
 }
 
 const addScore = (ctx: AppContext, { data }: AddScoreEvent) => {
-  if (!data.player) return
+  ctx = Play.makeScore(ctx, data)
 
-  ctx.history = ctx.history.map(i => {
-    if (i.id !== data.item) return i
-
-    i.scores.map(s => {
-      if (!data.player) return s
-      if (s.player !== data.player.id) return s
-
-      s.blocks[s.blocks.length - 1].push(data.score)
-      return s
-    })
-
-    return i
-  })
-
-  Storage.set({
-    key: 'DD_STATE',
-    value: JSON.stringify(ctx),
-  })
-
-  assign({
-    history: ctx.history,
-  })
+  return ctx
 }
 
 export const appMachine = Machine<AppContext, AppStateSchema, AppEvent>({
@@ -207,7 +122,6 @@ export const appMachine = Machine<AppContext, AppStateSchema, AppEvent>({
       on: {
         ADD_GAME: 'adding_game',
         RESET: {
-          target: 'idle',
           actions: assign(ctx => {
             const newState = {
               history: [],
@@ -224,10 +138,9 @@ export const appMachine = Machine<AppContext, AppStateSchema, AppEvent>({
           }),
         },
         DELETE_GAME: {
-          target: 'idle',
-          actions: assign((ctx: AppContext, { game }: DeleteGameEvent) => {
+          actions: assign((ctx: AppContext, { gameId }: DeleteGameEvent) => {
             const newState = {
-              history: ctx.history.filter(g => g.id !== game),
+              history: ctx.history.filter(g => g.id !== gameId),
               games: ctx.games,
               players: ctx.players,
             }
@@ -241,12 +154,10 @@ export const appMachine = Machine<AppContext, AppStateSchema, AppEvent>({
           }),
         },
         ADD_PLAYER: {
-          target: 'idle',
-          actions: addPlayer,
+          actions: assign(addPlayer),
         },
         ADD_SCORE: {
-          target: 'idle',
-          actions: addScore,
+          actions: assign(addScore),
         },
       },
     },
@@ -254,7 +165,7 @@ export const appMachine = Machine<AppContext, AppStateSchema, AppEvent>({
       on: {
         GAME_ADDED: {
           target: 'open_game',
-          actions: addGame,
+          actions: assign(addGame),
         },
         CANCEL: 'idle',
       },
