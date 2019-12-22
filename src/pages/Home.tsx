@@ -17,12 +17,14 @@ import {
   IonToolbar,
 } from '@ionic/react'
 import { useService } from '@xstate/react'
+import { add } from 'ionicons/icons'
 import React, { useEffect, useState } from 'react'
 import { RouteComponentProps } from 'react-router-dom'
 import { Interpreter } from 'xstate'
 import AddGame from '../components/AddGame'
 import Menu from '../components/Menu'
 import { AppContext, AppEvent, AppStateSchema } from '../data/appMachine'
+import { Game } from '../data/Game'
 import { Play } from '../data/Play'
 
 interface HomeProps extends RouteComponentProps<{}> {
@@ -35,8 +37,9 @@ const Home: React.FC<HomeProps> = ({ appService, history }) => {
 
   useEffect(() => {
     if ('open_game' === current.value) {
-      history.push(`/game/${Play.find(current.context, -1).id}`)
+      setIsAddGameOpen(false)
       send('RESTART')
+      history.push(`/game/${Play.find(current.context, -1).id}`)
     }
   }, [current, history, send])
 
@@ -45,7 +48,7 @@ const Home: React.FC<HomeProps> = ({ appService, history }) => {
       <Menu appService={appService} />
 
       <AddGame
-        games={current.context.games}
+        games={Game.all(current.context)}
         isOpen={isAddGameOpen}
         onDismiss={() => setIsAddGameOpen(false)}
         onSuccess={(gameId: number, name: string) => {
@@ -76,9 +79,7 @@ const Home: React.FC<HomeProps> = ({ appService, history }) => {
           ) : (
             <IonList>
               {current.context.history.map(item => {
-                const game = current.context.games.find(
-                  game => game.id === item.gameId
-                )
+                const game = Game.find(current.context, item.gameId)
                 return (
                   <IonItemSliding key={item.id}>
                     <IonItem routerLink={`/game/${item.id}`}>
@@ -92,8 +93,10 @@ const Home: React.FC<HomeProps> = ({ appService, history }) => {
                         color="secondary"
                         onClick={() => {
                           send({
-                            type: 'DELETE_GAME',
-                            gameId: item.id,
+                            type: 'DELETE_PLAY',
+                            data: {
+                              playId: item.id,
+                            },
                           })
                         }}
                       >
@@ -113,7 +116,7 @@ const Home: React.FC<HomeProps> = ({ appService, history }) => {
                 setIsAddGameOpen(true)
               }}
             >
-              <IonIcon class="dd-plus" name="close" />
+              <IonIcon icon={add} />
             </IonFabButton>
           </IonFab>
         </IonContent>

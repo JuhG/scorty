@@ -4,6 +4,7 @@ import { DB } from './DB'
 export interface PlayerSchema {
   id: number
   name: string
+  disabled?: boolean
 }
 
 export class Player {
@@ -13,6 +14,10 @@ export class Player {
   constructor(data: PlayerSchema) {
     this.id = data.id
     this.name = data.name
+  }
+
+  static all(ctx: AppContext) {
+    return ctx.players.filter(p => !p.disabled)
   }
 
   static find(ctx: AppContext, id: number): Player {
@@ -27,7 +32,18 @@ export class Player {
     if (id > -1) return ctx
 
     return DB.update(ctx, {
-      players: DB.add(ctx.players, data),
+      players: DB.add(ctx.players, { ...data, disabled: false }),
+    })
+  }
+
+  static delete(ctx: AppContext, id: number) {
+    return DB.update(ctx, {
+      players: ctx.players.map(p => {
+        if (p.id !== id) return p
+
+        p.disabled = true
+        return p
+      }),
     })
   }
 }

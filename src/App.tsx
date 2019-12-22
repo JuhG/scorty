@@ -19,7 +19,9 @@ import React, { useEffect, useState } from 'react'
 import { Redirect, Route } from 'react-router-dom'
 import { appMachine } from './data/appMachine'
 import Game from './pages/Game'
+import { Games } from './pages/Games'
 import Home from './pages/Home'
+import { Players } from './pages/Players'
 /* Theme variables */
 import './theme/variables.css'
 
@@ -62,13 +64,23 @@ const App: React.FC = () => {
         <IonReactRouter>
           <IonRouterOutlet>
             <Route
+              path="/game/:id"
+              render={props => <Game {...props} appService={appService} />}
+              exact={true}
+            />
+            <Route
               path="/home"
               render={props => <Home {...props} appService={appService} />}
               exact={true}
             />
             <Route
-              path="/game/:id"
-              render={props => <Game {...props} appService={appService} />}
+              path="/players"
+              render={props => <Players {...props} appService={appService} />}
+              exact={true}
+            />
+            <Route
+              path="/games"
+              render={props => <Games {...props} appService={appService} />}
               exact={true}
             />
             <Route exact path="/" render={() => <Redirect to="/home" />} />

@@ -20,9 +20,24 @@ export interface AppContext {
   players: Array<PlayerSchema>
 }
 
+interface LoadedEvent {
+  type: 'LOADED'
+  data: AppContext
+}
+
+interface MakeGameEvent {
+  type: 'MAKE_GAME'
+  data: GameSchema
+}
+
 interface AddGameEvent {
   type: 'ADD_GAME'
   data: GameSchema
+}
+
+interface MakePlayerEvent {
+  type: 'MAKE_PLAYER'
+  data: PlayerSchema
 }
 
 interface AddPlayerEvent {
@@ -43,20 +58,40 @@ interface AddScoreEvent {
   }
 }
 
+interface DeletePlayEvent {
+  type: 'DELETE_PLAY'
+  data: {
+    playId: number
+  }
+}
+
 interface DeleteGameEvent {
   type: 'DELETE_GAME'
-  gameId: number
+  data: {
+    gameId: number
+  }
+}
+
+interface DeletePlayerEvent {
+  type: 'DELETE_PLAYER'
+  data: {
+    playerId: number
+  }
 }
 
 export type AppEvent =
-  | { type: 'LOADED'; data: AppContext }
+  | LoadedEvent
   | { type: 'FAILED' }
   | { type: 'RESET' }
   | AddGameEvent
-  | DeleteGameEvent
   | { type: 'RESTART' }
   | AddPlayerEvent
   | AddScoreEvent
+  | DeletePlayEvent
+  | DeleteGameEvent
+  | DeletePlayerEvent
+  | MakePlayerEvent
+  | MakeGameEvent
 
 const addGame = (ctx: AppContext, { data }: AddGameEvent) => {
   ctx = Game.make(ctx, data)
@@ -68,6 +103,12 @@ const addGame = (ctx: AppContext, { data }: AddGameEvent) => {
     gameId: game.id,
     players: [],
   })
+
+  return ctx
+}
+
+const makeGame = (ctx: AppContext, { data }: MakeGameEvent) => {
+  ctx = Game.make(ctx, data)
 
   return ctx
 }
@@ -91,8 +132,32 @@ const addPlayer = (ctx: AppContext, { data }: AddPlayerEvent) => {
   return ctx
 }
 
+const makePlayer = (ctx: AppContext, { data }: MakePlayerEvent) => {
+  ctx = Player.make(ctx, data)
+
+  return ctx
+}
+
 const addScore = (ctx: AppContext, { data }: AddScoreEvent) => {
   ctx = Play.makeScore(ctx, data)
+
+  return ctx
+}
+
+const deletePlay = (ctx: AppContext, { data }: DeletePlayEvent) => {
+  ctx = Play.delete(ctx, data.playId)
+
+  return ctx
+}
+
+const deleteGame = (ctx: AppContext, { data }: DeleteGameEvent) => {
+  ctx = Game.delete(ctx, data.gameId)
+
+  return ctx
+}
+
+const deletePlayer = (ctx: AppContext, { data }: DeletePlayerEvent) => {
+  ctx = Player.delete(ctx, data.playerId)
 
   return ctx
 }
@@ -110,7 +175,7 @@ export const appMachine = Machine<AppContext, AppStateSchema, AppEvent>({
       on: {
         LOADED: {
           target: 'idle',
-          actions: assign((_, { data }) => data),
+          actions: assign((_, { data }: LoadedEvent) => data),
         },
         FAILED: 'idle',
       },
@@ -137,27 +202,26 @@ export const appMachine = Machine<AppContext, AppStateSchema, AppEvent>({
             return newState
           }),
         },
+        DELETE_PLAY: {
+          actions: assign(deletePlay),
+        },
         DELETE_GAME: {
-          actions: assign((ctx: AppContext, { gameId }: DeleteGameEvent) => {
-            const newState = {
-              history: ctx.history.filter(g => g.id !== gameId),
-              games: ctx.games,
-              players: ctx.players,
-            }
-
-            Storage.set({
-              key: 'DD_STATE',
-              value: JSON.stringify(newState),
-            })
-
-            return newState
-          }),
+          actions: assign(deleteGame),
         },
         ADD_PLAYER: {
           actions: assign(addPlayer),
         },
         ADD_SCORE: {
           actions: assign(addScore),
+        },
+        DELETE_PLAYER: {
+          actions: assign(deletePlayer),
+        },
+        MAKE_PLAYER: {
+          actions: assign(makePlayer),
+        },
+        MAKE_GAME: {
+          actions: assign(makeGame),
         },
       },
     },

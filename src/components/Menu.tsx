@@ -1,15 +1,19 @@
 import {
   IonAlert,
   IonContent,
+  IonFooter,
   IonHeader,
+  IonIcon,
   IonItem,
   IonLabel,
   IonList,
   IonMenu,
+  IonMenuToggle,
   IonTitle,
   IonToolbar,
 } from '@ionic/react'
 import { useService } from '@xstate/react'
+import { contacts, logoGameControllerB, trash } from 'ionicons/icons'
 import React, { useState } from 'react'
 import { Interpreter } from 'xstate'
 import { AppContext, AppEvent, AppStateSchema } from '../data/appMachine'
@@ -25,7 +29,7 @@ const Menu: React.FC<{
       <IonAlert
         isOpen={isAlertOpen}
         onDidDismiss={() => setIsAlertOpen(false)}
-        header={'Reset data'}
+        header={'Delete all data'}
         subHeader={'Are you sure? All your game history will be lost.'}
         buttons={[
           {
@@ -33,7 +37,7 @@ const Menu: React.FC<{
             role: 'cancel',
           },
           {
-            text: 'Reset data',
+            text: 'Delete',
             cssClass: 'secondary',
             handler: () => {
               send('RESET')
@@ -48,13 +52,35 @@ const Menu: React.FC<{
             <IonTitle>Settings</IonTitle>
           </IonToolbar>
         </IonHeader>
+
         <IonContent>
           <IonList>
-            <IonItem onClick={() => setIsAlertOpen(true)}>
-              <IonLabel>Delete history</IonLabel>
-            </IonItem>
+            <IonMenuToggle>
+              <IonItem routerLink="/games">
+                <IonIcon slot="start" icon={logoGameControllerB} />
+                <IonLabel>Games</IonLabel>
+              </IonItem>
+            </IonMenuToggle>
+
+            <IonMenuToggle>
+              <IonItem routerLink="/players">
+                <IonIcon slot="start" icon={contacts} />
+                <IonLabel>Players</IonLabel>
+              </IonItem>
+            </IonMenuToggle>
           </IonList>
         </IonContent>
+
+        <IonFooter>
+          <IonList>
+            <IonMenuToggle>
+              <IonItem onClick={() => setIsAlertOpen(true)}>
+                <IonIcon slot="start" icon={trash} />
+                <IonLabel>Delete played games</IonLabel>
+              </IonItem>
+            </IonMenuToggle>
+          </IonList>
+        </IonFooter>
       </IonMenu>
     </>
   )

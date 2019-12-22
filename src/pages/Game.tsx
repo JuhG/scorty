@@ -5,23 +5,25 @@ import {
   IonContent,
   IonFab,
   IonFabButton,
-  IonFooter,
   IonHeader,
   IonIcon,
   IonLabel,
   IonList,
+  IonMenuButton,
   IonPage,
   IonTitle,
   IonToolbar,
 } from '@ionic/react'
 import { useService } from '@xstate/react'
+import { add } from 'ionicons/icons'
 import React, { useEffect, useState } from 'react'
 import { RouteComponentProps } from 'react-router-dom'
 import { Interpreter } from 'xstate'
 import AddPlayer from '../components/AddPlayer'
 import AddScore from '../components/AddScore'
-import Menu from '../components/Menu'
 import { AppContext, AppEvent, AppStateSchema } from '../data/appMachine'
+import { Game as GameClass } from '../data/Game'
+import { Play } from '../data/Play'
 import { Player, PlayerSchema } from '../data/Player'
 
 interface GameProps
@@ -31,44 +33,29 @@ interface GameProps
   appService: Interpreter<AppContext, AppStateSchema, AppEvent>
 }
 
-const Game: React.FC<GameProps> = ({ appService, match, history }) => {
+const Game: React.FC<GameProps> = ({ appService, match }) => {
   const [current, send] = useService(appService)
   const [isAddPlayerOpen, setIsAddPlayerOpen] = useState(false)
   const [isAddScoreOpen, setIsAddScoreOpen] = useState(false)
+
   const [currentPlayer, setCurrentPlayer] = useState<PlayerSchema>(
     Player.find(current.context, -1)
   )
 
-  const item = current.context.history.find(
-    item => item.id === parseInt(match.params.id, 10)
-  )
+  const item = Play.find(current.context, parseInt(match.params.id, 10))
+  const game = GameClass.find(current.context, item.gameId)
 
   useEffect(() => {
-    if (!item) return
-
     if (item.players.length === 0) {
       setIsAddPlayerOpen(true)
     }
-  }, [item, currentPlayer])
-
-  if (!item) {
-    history.push('/')
-    return null
-  }
-
-  const game = current.context.games.find(game => game.id === item.gameId)
-
-  if (!game) {
-    history.push('/')
-    return null
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <>
-      <Menu appService={appService} />
-
       <AddPlayer
-        players={current.context.players.filter(p => {
+        players={Player.all(current.context).filter(p => {
           return item.players.map(sc => sc.playerId).indexOf(p.id) === -1
         })}
         isOpen={isAddPlayerOpen}
@@ -92,6 +79,8 @@ const Game: React.FC<GameProps> = ({ appService, match, history }) => {
         onSuccess={(score: number) => {
           setIsAddScoreOpen(false)
 
+          if (0 === score) return
+
           send({
             type: 'ADD_SCORE',
             data: {
@@ -109,7 +98,12 @@ const Game: React.FC<GameProps> = ({ appService, match, history }) => {
             <IonButtons slot="start">
               <IonBackButton defaultHref="/"></IonBackButton>
             </IonButtons>
+
             <IonTitle>{game.name}</IonTitle>
+
+            <IonButtons slot="end">
+              <IonMenuButton />
+            </IonButtons>
           </IonToolbar>
         </IonHeader>
         <IonContent id="main">
@@ -138,7 +132,7 @@ const Game: React.FC<GameProps> = ({ appService, match, history }) => {
                       }}
                     >
                       <IonLabel>
-                        <IonIcon class="dd-plus" name="close" />
+                        <IonIcon icon={add} />
                       </IonLabel>
                     </IonChip>
                   </div>
@@ -188,13 +182,11 @@ const Game: React.FC<GameProps> = ({ appService, match, history }) => {
                   setIsAddPlayerOpen(true)
                 }}
               >
-                <IonIcon class="dd-plus" name="close" />
+                <IonIcon icon={add} />
               </IonFabButton>
             </IonFab>
           )}
         </IonContent>
-
-        <IonFooter></IonFooter>
       </IonPage>
     </>
   )

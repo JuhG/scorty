@@ -188,10 +188,6 @@
   --padding-end: 20px !important;
 }
 
-.dd-plus {
-  transform: rotate(45deg);
-}
-
 .alert-button.secondary {
   --ion-color-primary: var(--ion-color-secondary);
 }

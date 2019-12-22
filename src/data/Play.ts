@@ -48,6 +48,12 @@ export class Play {
     })
   }
 
+  static delete(ctx: AppContext, id: number) {
+    return DB.update(ctx, {
+      history: ctx.history.filter(p => p.id !== id),
+    })
+  }
+
   static makePlayer(
     ctx: AppContext,
     {
