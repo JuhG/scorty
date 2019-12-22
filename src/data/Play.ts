@@ -85,7 +85,7 @@ export class Play {
     return DB.update(ctx, {
       history: ctx.history.map(play => {
         if (play.id !== playId) return play
-        
+
         const players = play.players.map(player => {
           if (player.playerId !== playerId) return player
 

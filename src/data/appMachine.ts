@@ -10,7 +10,6 @@ export interface AppStateSchema {
   states: {
     loading: {}
     idle: {}
-    adding_game: {}
     open_game: {}
   }
 }
@@ -22,7 +21,7 @@ export interface AppContext {
 }
 
 interface AddGameEvent {
-  type: 'GAME_ADDED'
+  type: 'ADD_GAME'
   data: GameSchema
 }
 
@@ -52,11 +51,9 @@ interface DeleteGameEvent {
 export type AppEvent =
   | { type: 'LOADED'; data: AppContext }
   | { type: 'FAILED' }
-  | { type: 'ADD_GAME' }
   | { type: 'RESET' }
-  | DeleteGameEvent
   | AddGameEvent
-  | { type: 'CANCEL' }
+  | DeleteGameEvent
   | { type: 'RESTART' }
   | AddPlayerEvent
   | AddScoreEvent
@@ -120,7 +117,10 @@ export const appMachine = Machine<AppContext, AppStateSchema, AppEvent>({
     },
     idle: {
       on: {
-        ADD_GAME: 'adding_game',
+        ADD_GAME: {
+          target: 'open_game',
+          actions: assign(addGame),
+        },
         RESET: {
           actions: assign(ctx => {
             const newState = {
@@ -159,15 +159,6 @@ export const appMachine = Machine<AppContext, AppStateSchema, AppEvent>({
         ADD_SCORE: {
           actions: assign(addScore),
         },
-      },
-    },
-    adding_game: {
-      on: {
-        GAME_ADDED: {
-          target: 'open_game',
-          actions: assign(addGame),
-        },
-        CANCEL: 'idle',
       },
     },
     open_game: {

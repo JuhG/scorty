@@ -34,21 +34,9 @@ const Home: React.FC<HomeProps> = ({ appService, history }) => {
   const [isAddGameOpen, setIsAddGameOpen] = useState(false)
 
   useEffect(() => {
-    console.log(current)
-
-    switch (current.value) {
-      case 'adding_game':
-        setIsAddGameOpen(true)
-        break
-
-      case 'open_game':
-        history.push(`/game/${Play.find(current.context, -1).id}`)
-        send('RESTART')
-        break
-
-      default:
-        setIsAddGameOpen(false)
-        break
+    if ('open_game' === current.value) {
+      history.push(`/game/${Play.find(current.context, -1).id}`)
+      send('RESTART')
     }
   }, [current, history, send])
 
@@ -59,11 +47,11 @@ const Home: React.FC<HomeProps> = ({ appService, history }) => {
       <AddGame
         games={current.context.games}
         isOpen={isAddGameOpen}
-        onDismiss={() => send('CANCEL')}
-        onSuccess={(game: number, name: string) => {
+        onDismiss={() => setIsAddGameOpen(false)}
+        onSuccess={(gameId: number, name: string) => {
           send({
-            type: 'GAME_ADDED',
-            data: { id: game, name },
+            type: 'ADD_GAME',
+            data: { id: gameId, name },
           })
         }}
       />
@@ -122,7 +110,7 @@ const Home: React.FC<HomeProps> = ({ appService, history }) => {
             <IonFabButton
               color="secondary"
               onClick={() => {
-                send('ADD_GAME')
+                setIsAddGameOpen(true)
               }}
             >
               <IonIcon class="dd-plus" name="close" />

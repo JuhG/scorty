@@ -6,18 +6,19 @@ import {
   IonLabel,
   IonList,
   IonModal,
-  IonSelect,
-  IonSelectOption,
+  IonRadio,
+  IonRadioGroup,
   IonTitle,
   IonToolbar,
 } from '@ionic/react'
 import React, { useState } from 'react'
+import { GameSchema } from '../data/Game'
 
 interface ModalProps {
   isOpen: boolean
   onDismiss: () => void
-  games: Array<{ id: number; name: string }>
-  onSuccess: (game: number, name: string) => void
+  games: Array<GameSchema>
+  onSuccess: (gameId: number, name: string) => void
 }
 
 const Modal: React.FC<ModalProps> = ({
@@ -27,38 +28,54 @@ const Modal: React.FC<ModalProps> = ({
   onSuccess,
 }) => {
   const [name, setName] = useState('')
-  const [game, setGame] = useState<number | null>(null)
+  const [game, setGame] = useState<number>(-1)
 
   return (
     <IonModal
       cssClass="dd-add-game"
       isOpen={isOpen}
-      onDidDismiss={() => onDismiss()}
+      onDidDismiss={() => {
+        setGame(-1)
+        setName('')
+
+        onDismiss()
+      }}
     >
       <IonToolbar color="secondary">
-        <IonTitle slot="start">Create a new game</IonTitle>
+        <IonTitle slot="start">Start a new game</IonTitle>
       </IonToolbar>
 
-      <IonList>
-        <IonItem>
-          <IonLabel>Game</IonLabel>
-          <IonSelect
+      <div
+        style={{
+          overflowY: 'auto',
+        }}
+      >
+        <IonList>
+          <IonRadioGroup
             value={game}
-            onIonChange={e => setGame(e.detail.value)}
-            name="dd_game"
-            placeholder="Pick One"
+            onIonChange={e => {
+              if ('undefined' === typeof e.detail.value) return
+              if (null === e.detail.value) return
+              setGame(e.detail.value)
+            }}
           >
-            <IonSelectOption value={-1}>Add new game</IonSelectOption>
-            {games.map(game => (
-              <IonSelectOption key={game.id} value={game.id}>
-                {game.name}
-              </IonSelectOption>
+            {games.map(p => (
+              <IonItem key={p.id}>
+                <IonLabel>{p.name}</IonLabel>
+                <IonRadio slot="start" value={p.id} />
+              </IonItem>
             ))}
-          </IonSelect>
-        </IonItem>
+
+            <IonItem>
+              <IonLabel>Add new game</IonLabel>
+              <IonRadio slot="start" value={-1} />
+            </IonItem>
+          </IonRadioGroup>
+        </IonList>
+
         {-1 === game ? (
           <IonItem>
-            <IonLabel>New game</IonLabel>
+            <IonLabel>Name of the game: </IonLabel>
             <IonInput
               class="ion-text-end"
               value={name}
@@ -72,12 +89,15 @@ const Modal: React.FC<ModalProps> = ({
         ) : (
           ''
         )}
-      </IonList>
+      </div>
 
       <IonToolbar color="light">
         <IonButtons slot="start">
           <IonButton
             onClick={() => {
+              setGame(-1)
+              setName('')
+
               onDismiss()
             }}
           >
@@ -89,13 +109,11 @@ const Modal: React.FC<ModalProps> = ({
             class="dd-button"
             fill="solid"
             size="large"
-            disabled={null === game || (game === -1 && !name)}
+            disabled={game === -1 && !name}
             onClick={() => {
-              if (null === game) return
-
               onSuccess(game, name)
 
-              setGame(null)
+              setGame(-1)
               setName('')
             }}
           >

@@ -74,8 +74,6 @@ const Game: React.FC<GameProps> = ({ appService, match, history }) => {
         isOpen={isAddPlayerOpen}
         onDismiss={() => setIsAddPlayerOpen(false)}
         onSuccess={(player: number, name: string) => {
-          setIsAddPlayerOpen(false)
-
           send({
             type: 'ADD_PLAYER',
             data: {

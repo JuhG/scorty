@@ -17,7 +17,7 @@ interface ModalProps {
   isOpen: boolean
   onDismiss: () => void
   players: Array<{ id: number; name: string }>
-  onSuccess: (game: number, name: string) => void
+  onSuccess: (playerId: number, name: string) => void
 }
 
 const Modal: React.FC<ModalProps> = ({
@@ -27,18 +27,19 @@ const Modal: React.FC<ModalProps> = ({
   onSuccess,
 }) => {
   const [name, setName] = useState('')
-  const [player, setPlayer] = useState<number | null>(null)
+  const [player, setPlayer] = useState<number>(-1)
+
+  const reset = () => {
+    onDismiss()
+    setPlayer(-1)
+    setName('')
+  }
 
   return (
     <IonModal
       cssClass="dd-add-game"
       isOpen={isOpen}
-      onDidDismiss={() => {
-        setPlayer(null)
-        setName('')
-
-        onDismiss()
-      }}
+      onDidDismiss={() => reset()}
     >
       <IonToolbar color="secondary">
         <IonTitle slot="start">Add a player</IonTitle>
@@ -92,16 +93,7 @@ const Modal: React.FC<ModalProps> = ({
 
       <IonToolbar color="light">
         <IonButtons slot="start">
-          <IonButton
-            onClick={() => {
-              setPlayer(null)
-              setName('')
-
-              onDismiss()
-            }}
-          >
-            Cancel
-          </IonButton>
+          <IonButton onClick={() => reset()}>Cancel</IonButton>
         </IonButtons>
         <IonButtons slot="end">
           <IonButton
@@ -110,12 +102,8 @@ const Modal: React.FC<ModalProps> = ({
             size="large"
             disabled={player === -1 && !name}
             onClick={() => {
-              if (null === player) return
-
               onSuccess(player, name)
-
-              setPlayer(null)
-              setName('')
+              reset()
             }}
           >
             Add
