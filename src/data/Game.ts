@@ -24,7 +24,7 @@ export class Game {
     const game = ctx.games.find(game => game.id === id)
     if (game) return new Game({ ...game })
 
-    const backup = ctx.games[ctx.games.length - 1]
+    const backup = ctx.games.sort((a, b) => b.id - a.id)[0]
     return new Game({ ...backup })
   }
 

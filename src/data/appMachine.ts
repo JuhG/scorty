@@ -65,6 +65,13 @@ interface DeletePlayEvent {
   }
 }
 
+interface AddSectionEvent {
+  type: 'ADD_SECTION'
+  data: {
+    playId: number
+  }
+}
+
 interface DeleteGameEvent {
   type: 'DELETE_GAME'
   data: {
@@ -92,6 +99,7 @@ export type AppEvent =
   | DeletePlayerEvent
   | MakePlayerEvent
   | MakeGameEvent
+  | AddSectionEvent
 
 const addGame = (ctx: AppContext, { data }: AddGameEvent) => {
   ctx = Game.make(ctx, data)
@@ -162,6 +170,12 @@ const deletePlayer = (ctx: AppContext, { data }: DeletePlayerEvent) => {
   return ctx
 }
 
+const addSection = (ctx: AppContext, { data }: AddSectionEvent) => {
+  ctx = Play.addSection(ctx, data)
+
+  return ctx
+}
+
 export const appMachine = Machine<AppContext, AppStateSchema, AppEvent>({
   id: 'game',
   initial: 'loading',
@@ -222,6 +236,9 @@ export const appMachine = Machine<AppContext, AppStateSchema, AppEvent>({
         },
         MAKE_GAME: {
           actions: assign(makeGame),
+        },
+        ADD_SECTION: {
+          actions: assign(addSection),
         },
       },
     },

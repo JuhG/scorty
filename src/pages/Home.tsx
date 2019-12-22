@@ -26,6 +26,7 @@ import Menu from '../components/Menu'
 import { AppContext, AppEvent, AppStateSchema } from '../data/appMachine'
 import { Game } from '../data/Game'
 import { Play } from '../data/Play'
+import { Player } from '../data/Player'
 
 interface HomeProps extends RouteComponentProps<{}> {
   appService: Interpreter<AppContext, AppStateSchema, AppEvent>
@@ -75,6 +76,7 @@ const Home: React.FC<HomeProps> = ({ appService, history }) => {
             <div className="ion-padding">
               <h4>You don't have any games yet.</h4>
               <p>Click the plus sign to start one!</p>
+              <p>Later you can delete them by swiping left.</p>
             </div>
           ) : (
             <IonList>
@@ -84,8 +86,44 @@ const Home: React.FC<HomeProps> = ({ appService, history }) => {
                   <IonItemSliding key={item.id}>
                     <IonItem routerLink={`/game/${item.id}`}>
                       <IonLabel>
-                        <h2>{game ? game.name : ''}</h2>
-                        <p>{new Date(item.date).toLocaleDateString()}</p>
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'baseline',
+                          }}
+                        >
+                          <h2
+                            style={{
+                              fontSize: 18,
+                              marginBottom: 5,
+                            }}
+                          >
+                            {game.name}
+                          </h2>
+                          <p>{new Date(item.date).toLocaleDateString()}</p>
+                        </div>
+
+                        <p>
+                          <span>Players:</span>
+                          {item.players.map((p, index) => {
+                            return (
+                              <span key={p.playerId}>
+                                {index === 0 ? '' : <span>,</span>}
+                                <span
+                                  style={{
+                                    marginLeft: 5,
+                                  }}
+                                >
+                                  {
+                                    Player.find(current.context, p.playerId)
+                                      .name
+                                  }
+                                </span>
+                              </span>
+                            )
+                          })}
+                        </p>
                       </IonLabel>
                     </IonItem>
                     <IonItemOptions side="end">

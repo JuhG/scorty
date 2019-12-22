@@ -11,7 +11,6 @@ import {
   IonList,
   IonMenuButton,
   IonPage,
-  IonReorder,
   IonTitle,
   IonToolbar,
 } from '@ionic/react'
@@ -62,10 +61,9 @@ export const List: React.FC<ListProps> = ({ title, data, onDelete, onAdd }) => {
           <IonList>
             {data.map(item => {
               return (
-                <IonItem key={item.id} onClick={() => onDelete(item.id)}>
-                  <IonReorder slot="start" />
+                <IonItem key={item.id}>
                   <IonLabel>{item.name}</IonLabel>
-                  <IonIcon icon={trash} />
+                  <IonIcon icon={trash} onClick={() => onDelete(item.id)} />
                 </IonItem>
               )
             })}

@@ -1,15 +1,16 @@
 import {
   IonBackButton,
+  IonButton,
   IonButtons,
   IonChip,
   IonContent,
   IonFab,
   IonFabButton,
+  IonFooter,
   IonHeader,
   IonIcon,
   IonLabel,
   IonList,
-  IonMenuButton,
   IonPage,
   IonTitle,
   IonToolbar,
@@ -100,10 +101,6 @@ const Game: React.FC<GameProps> = ({ appService, match }) => {
             </IonButtons>
 
             <IonTitle>{game.name}</IonTitle>
-
-            <IonButtons slot="end">
-              <IonMenuButton />
-            </IonButtons>
           </IonToolbar>
         </IonHeader>
         <IonContent id="main">
@@ -120,35 +117,14 @@ const Game: React.FC<GameProps> = ({ appService, match }) => {
                   }}
                   className="dd-col"
                 >
-                  <IonChip color="primary">
+                  <IonLabel
+                    style={{
+                      marginBottom: 10,
+                      fontWeight: 'bold',
+                    }}
+                  >
                     <IonLabel>{player.name}</IonLabel>
-                  </IonChip>
-                  <div className="dd-add">
-                    <IonChip
-                      color="secondary"
-                      onClick={() => {
-                        setCurrentPlayer(player)
-                        setIsAddScoreOpen(true)
-                      }}
-                    >
-                      <IonLabel>
-                        <IonIcon icon={add} />
-                      </IonLabel>
-                    </IonChip>
-                  </div>
-                  {score.blocks.map(block => {
-                    return (
-                      <div key={block.id} className="dd-col dd-block">
-                        {block.scores.map(b => {
-                          return (
-                            <IonChip key={b.id} outline={true}>
-                              <IonLabel>{b.score}</IonLabel>
-                            </IonChip>
-                          )
-                        })}
-                      </div>
-                    )
-                  })}
+                  </IonLabel>
 
                   {score.blocks.some(b => b.scores.length) ? (
                     <div className="dd-sum">
@@ -165,6 +141,41 @@ const Game: React.FC<GameProps> = ({ appService, match }) => {
                   ) : (
                     ''
                   )}
+
+                  <div className="dd-add">
+                    <IonChip
+                      color="secondary"
+                      onClick={() => {
+                        setCurrentPlayer(player)
+                        setIsAddScoreOpen(true)
+                      }}
+                    >
+                      <IonLabel>
+                        <IonIcon icon={add} />
+                      </IonLabel>
+                    </IonChip>
+                  </div>
+
+                  {score.blocks
+                    .sort((a, b) => b.id - a.id)
+                    .map(block => {
+                      return (
+                        <div key={block.id} className="dd-col dd-block">
+                          {block.scores
+                            .sort((a, b) => b.id - a.id)
+                            .map(b => {
+                              return (
+                                <IonChip
+                                  key={block.id + '-' + b.id}
+                                  outline={true}
+                                >
+                                  <IonLabel>{b.score}</IonLabel>
+                                </IonChip>
+                              )
+                            })}
+                        </div>
+                      )
+                    })}
                 </div>
               )
             })}
@@ -187,6 +198,28 @@ const Game: React.FC<GameProps> = ({ appService, match }) => {
             </IonFab>
           )}
         </IonContent>
+
+        <IonFooter>
+          {!item.players.some(sc => {
+            return sc.blocks.some(b => b.scores.length)
+          }) ? (
+            ''
+          ) : (
+            <IonButton
+              onClick={() =>
+                send({
+                  type: 'ADD_SECTION',
+                  data: {
+                    playId: item.id,
+                  },
+                })
+              }
+              color="secondary"
+            >
+              Add section
+            </IonButton>
+          )}
+        </IonFooter>
       </IonPage>
     </>
   )

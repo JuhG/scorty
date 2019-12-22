@@ -6,8 +6,11 @@ const { Storage } = Plugins
 const getNewIndex = (list: Array<{ id: number; [key: string]: any }>) => {
   if (!list.length) return 0
 
-  const lastElement = list[list.length - 1]
-  return lastElement.id + 1
+  const sortedList = list.sort(
+    (a: { id: number }, b: { id: number }) => b.id - a.id
+  )
+
+  return sortedList[0].id + 1
 }
 
 export class DB {

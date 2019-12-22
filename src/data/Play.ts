@@ -38,7 +38,7 @@ export class Play {
     const item = ctx.history.find(item => item.id === id)
     if (item) return new Play({ ...item })
 
-    const backup = ctx.history[ctx.history.length - 1]
+    const backup = ctx.history.sort((a, b) => b.id - a.id)[0]
     return new Play({ ...backup })
   }
 
@@ -130,8 +130,9 @@ export class Play {
         const players = play.players.map(player => {
           if (player.playerId !== playerId) return player
 
-          const blocks = player.blocks.map((block, index) => {
-            if (index !== player.blocks.length - 1) return block
+          const blocks = player.blocks.map(block => {
+            if (block.id !== player.blocks.sort((a, b) => b.id - a.id)[0].id)
+              return block
 
             return {
               ...block,
@@ -142,6 +143,59 @@ export class Play {
           return {
             ...player,
             blocks,
+          }
+        })
+
+        return {
+          ...play,
+          players,
+        }
+      }),
+    })
+  }
+
+  static addSection(
+    ctx: AppContext,
+    {
+      playId,
+    }: {
+      playId: number
+    }
+  ) {
+    return DB.update(ctx, {
+      history: ctx.history.map(play => {
+        if (play.id !== playId) return play
+
+        if (
+          !play.players.some(p => {
+            return p.blocks.some(b => {
+              if (p.blocks.sort((a, b) => b.id - a.id)[0].id !== b.id)
+                return false
+
+              return b.scores.length > 0
+            })
+          })
+        ) {
+          return play
+        }
+
+        const players = play.players.map(player => {
+          const lastBlock = player.blocks.sort((a, b) => b.id - a.id)[0]
+
+          if (lastBlock.scores.length === 0) {
+            lastBlock.scores = [
+              {
+                id: 0,
+                score: 0,
+              },
+            ]
+          }
+
+          return {
+            ...player,
+            blocks: DB.add(player.blocks, {
+              scores: [],
+            }),
           }
         })
 

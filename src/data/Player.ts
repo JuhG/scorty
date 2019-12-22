@@ -24,7 +24,7 @@ export class Player {
     const player = ctx.players.find(player => player.id === id)
     if (player) return new Player({ ...player })
 
-    const backup = ctx.players[ctx.players.length - 1]
+    const backup = ctx.players.sort((a, b) => b.id - a.id)[0]
     return new Player({ ...backup })
   }
 
