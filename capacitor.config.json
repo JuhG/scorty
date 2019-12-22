@@ -1,6 +1,6 @@
 {
-  "appId": "io.ionic.starter",
-  "appName": "ionic-first",
+  "appId": "dd.scorty",
+  "appName": "scorty",
   "bundledWebRuntime": false,
   "npmClient": "npm",
   "webDir": "build",

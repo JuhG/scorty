@@ -1,6 +1,6 @@
 {
-  "name": "ionic-first",
-  "version": "0.0.1",
+  "name": "scorty",
+  "version": "0.1.0",
   "private": true,
   "dependencies": {
     "@capacitor/android": "^1.3.0",
